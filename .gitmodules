@@ -91,3 +91,6 @@
 [submodule "bundle/vim-polyglot"]
 	path = bundle/vim-polyglot
 	url = https://github.com/sheerun/vim-polyglot.git
+[submodule "bundle/vim-two-firewatch"]
+	path = bundle/vim-two-firewatch
+	url = https://github.com/rakr/vim-two-firewatch.git

@@ -80,7 +80,7 @@
     lm_sensors
     dmidecode
     xclip
-    (pkgs.st.overrideAttrs (attrs: { configFile = builtins.readFile /home/nathan/vim_config/config.h; }))
+    #(pkgs.st.overrideAttrs (attrs: { configFile = builtins.readFile /home/nathan/vim_config/config.h; }))
     openvpn
     synergy
   ];
@@ -139,7 +139,7 @@
     
     #st.conf = "/*entire config file...*/";
     #chromium.enableWideVine = true;
-    firefox.enableAdobeFlash = true;
+    #firefox.enableAdobeFlash = true;
   };
 
 }

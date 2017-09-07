@@ -41,6 +41,7 @@
     pv
     networkmanagerapplet
     python3
+    python
     clisp
     cryptsetup
     wget
@@ -69,17 +70,20 @@
     #dmenu-wayland
     #xwayland
     steam
+    st
+    lsof
+    libreoffice
+    iftop
+    vlc
     cloc
     clang
     lm_sensors
-    #kde4.kcachegrind
     dmidecode
-    iftop
     xclip
-    (pkgs.st.overrideAttrs (attrs: { configFile = builtins.readFile /home/nathan/vim_config/config.h; }))
+    #(pkgs.st.overrideAttrs (attrs: { configFile = builtins.readFile /home/nathan/vim_config/config.h; }))
     openvpn
+    synergy
   ];
-
 
 
   # List services that you want to enable:
@@ -102,8 +106,9 @@
 
   # Enable the KDE Desktop Environment.
   #services.xserver.displayManager.kdm.enable = true;
-  #services.xserver.desktopManager.kde4.enable = true;
-  services.xserver.displayManager.sddm.enable = true;
+  #services.xserver.desktopManager.kde.enable = true;
+  #services.xserver.displayManager.sddm.enable = true;
+  services.xserver.displayManager.slim.enable = true;
   services.xserver.windowManager.i3.enable = true;
 
 
@@ -122,6 +127,9 @@
   hardware = {
 	  pulseaudio.enable = true;
 	  pulseaudio.support32Bit = true;
+
+      bluetooth.enable = true;
+
       # Steam stuff
       opengl.driSupport32Bit = true;
   };
@@ -131,6 +139,7 @@
     
     #st.conf = "/*entire config file...*/";
     #chromium.enableWideVine = true;
+    #firefox.enableAdobeFlash = true;
   };
 
 }

@@ -16,9 +16,16 @@
   boot = {
 	  loader = {
 		  grub.enable = true;
-                  grub.device = "/dev/sda";
+          grub.device = "/dev/sda";
+          grub.extraEntries = ''
+            menuentry "Windows" {
+              chainloader (hd0,1)+1
+            }
+          '';
 	  };
   };
+
+  services.logind.extraConfig = "HandleLidSwitch=ignore";
 
   networking.hostName = "nixos-old-laptop"; # Define your hostname.
 }

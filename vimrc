@@ -73,6 +73,7 @@ set termguicolors
 "set guicolors
 set t_Co=256
 set term=xterm-256color
+set t_ut=
 " in case t_Co alone doesn't work, add this as well:
 "let &t_AB="\e[48;5;%dm"
 "let &t_AF="\e[38;5;%dm"
@@ -84,9 +85,9 @@ set termguicolors
 "colorscheme mustang
 "colorscheme monokain
 "
-"colorscheme lucius
+colorscheme lucius
 "colorscheme onedark
-colorscheme sol
+"colorscheme sol
 
 "set background=dark
 set background=light
@@ -251,7 +252,7 @@ map ,t :call OCamlType()<return>
 "map <F2> :call TrimWhiteSpace()<CR>
 "map! <F2> :call TrimWhiteSpace()<CR>
 
-autocmd FileType c,cpp,java,diff autocmd BufWritePre <buffer> :%s/\s\+$//e
+"autocmd FileType c,cpp,java,diff autocmd BufWritePre <buffer> :%s/\s\+$//e
 
 " {{{ General settings
 " The following are some sensible defaults for Vim for most users.

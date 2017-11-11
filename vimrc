@@ -85,12 +85,12 @@ set termguicolors
 "colorscheme mustang
 "colorscheme monokain
 "
-colorscheme lucius
-"colorscheme onedark
+"colorscheme lucius
+colorscheme onedark
 "colorscheme sol
 
 "set background=dark
-set background=light
+"set background=light
 
 " Airline
 let g:airline_powerline_fonts = 1

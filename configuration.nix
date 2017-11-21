@@ -12,6 +12,10 @@
       /home/nathan/vim_config/trackpad-shared.nix
     ];
 
+  # set DPI
+  #services.xserver.monitorSection = ''
+      #DisplaySize 195 345
+  #'';
   # Use the systemd-boot EFI boot loader.
   boot = {
   	  initrd.luks.devices = [{

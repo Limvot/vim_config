@@ -32,10 +32,10 @@ exec feh --bg-scale ~/Backgrounds/steins_gate_by_weaselmon-d7zjswy.png
 
 # Colors
 # class                 border  backgr. text    indicator
-client.focused          x777777 x556677 xffffff x2e9ef4
-client.focused_inactive x333333 x5f676a xffffff x484e50
-client.unfocused        x333333 x222222 x888888 x292d2e
-client.urgent           x2f343a x900000 xffffff x900000
+#client.focused          x777777 x556677 xffffff x2e9ef4
+#client.focused_inactive x333333 x5f676a xffffff x484e50
+#client.unfocused        x333333 x222222 x888888 x292d2e
+#client.urgent           x2f343a x900000 xffffff x900000
 #client.placeholder      000000 0c0c0c ffffff 000000
 
 assign [instance="desktop_window"] 9

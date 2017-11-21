@@ -58,8 +58,8 @@
     gnumake
     cmake
     firefox
-    chromium
-    google-chrome
+    #chromium
+    #google-chrome
     i3status
     dmenu
     pavucontrol

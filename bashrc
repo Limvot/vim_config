@@ -95,3 +95,5 @@ export PATH=$PATH:~/bin:~/.gem/ruby/2.1.0/bin:~/Nim/bin:/opt/android-sdk/android
 
 export PATH=/home/nbraswell6/packages/installed/bin:$PATH
 export LD_LIBRARY_PATH=/home/nbraswell6/packages/installed/lib:$LD_LIBRARY_PATH
+export PATH=/home/nbraswell6/packages/installed/bin:$PATH
+export LD_LIBRARY_PATH=/home/nbraswell6/packages/installed/lib:$LD_LIBRARY_PATH

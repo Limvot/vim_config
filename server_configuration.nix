@@ -38,15 +38,21 @@
   environment.systemPackages = with pkgs; [
     cmake
     gcc
+    gdb
     gnumake
     htop
     cloc
     tmux
     git
-    neovim    
+    vim
+#    neovim    
     wget
     unzip
     iftop
+    openssl
+    jdk
+    maven
+    nodejs
   ];
 
   # List services that you want to enable:
@@ -128,6 +134,10 @@
         listen *:80;
         listen [::]:80;
         location /.well-known/acme-challenge { root /var/www/challenges; }
+        location /_matrix {
+            proxy_pass http://localhost:8008;
+            proxy_set_header X-Forwarded-For $remote_addr;
+        }
         ssl_certificate ${config.security.acme.directory}/room409.xyz/fullchain.pem;
         ssl_certificate_key ${config.security.acme.directory}/room409.xyz/key.pem;
         root /var/www/room409.xyz;
@@ -143,6 +153,14 @@
         root /var/www/mangagaga.room409.xyz;
         autoindex on;
         types  { application/octet-stream  apk; }
+      }
+      server {
+        server_name alexa.room409.xyz;
+        listen 443 ssl;
+        location / { proxy_pass https://127.0.0.1:8888; }
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+        ssl_certificate ${config.security.acme.directory}/alexa.room409.xyz/fullchain.pem;
+        ssl_certificate_key ${config.security.acme.directory}/alexa.room409.xyz/key.pem;
       }
     '';
   };
@@ -165,12 +183,62 @@
  security.acme.certs."room409.xyz" = {
    webroot = "/var/www/challenges";
    email = "miloignis@gmail.com";
-   postRun = "systemctl restart nginx.service";
+   postRun = "systemctl restart nginx.service && cp ${config.security.acme.directory}/room409.xyz/fullchain.pem /var/lib/matrix-synapse/ && cp ${config.security.acme.directory}/room409.xyz/key.pem /var/lib/matrix-synapse && chown -R :matrix-synapse /var/lib/matrix-synapse && chmod -R g+rX /var/lib/matrix-synapse";
  };
  security.acme.certs."mangagaga.room409.xyz" = {
    webroot = "/var/www/challenges";
    email = "miloignis@gmail.com";
    postRun = "systemctl restart nginx.service";
+ };
+ security.acme.certs."alexa.room409.xyz" = {
+   webroot = "/var/www/challenges";
+   email = "miloignis@gmail.com";
+   postRun = "systemctl restart nginx.service";
+ };
+
+ services.matrix-synapse = {
+    enable = true;
+    no_tls = false;
+    tls_certificate_path = "/var/lib/matrix-synapse/fullchain.pem";
+    tls_private_key_path = "/var/lib/matrix-synapse/key.pem";
+    tls_dh_params_path = null;
+    server_name = "room409.xyz";
+    web_client = true;
+    public_baseurl = "https://room409.xyz/";
+    listeners = [
+        {
+            port = 8448;
+            bind_address = "";
+            type = "http";
+            tls = true;
+            x_forwarded = false;
+            resources = [
+                { names = ["federation"]; compress = false; }
+            ];
+        }
+        {
+            port = 8008;
+            bind_address = "localhost";
+            type = "http";
+            tls = false;
+            x_forwarded = true;
+            resources = [
+                { names = ["client" "webclient"]; compress = true; }
+            ];
+        }
+    ];
+    verbose = "0";
+    database_type = "sqlite3";
+    url_preview_enabled = false;
+    enable_registration = true;
+    registration_shared_secret = null;
+    enable_metrics = true;
+    report_stats = true;
+    allow_guest_access = true;
+    trusted_third_party_id_servers = [ "vector.im" ];
+    app_service_config_files = [
+        "/home/nathan/matrix-puppet-facebook/facebook-registration.yaml"
+        ];
  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -180,6 +248,6 @@
   # };
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "16.09";
+  system.stateVersion = "17.09";
 
 }

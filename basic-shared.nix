@@ -30,10 +30,10 @@
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
     #xonotic
+    gimp
     nmap
     iw
     rfkill
-    haskellPackages.idris
     evince
     i3lock
     psmisc
@@ -59,7 +59,7 @@
     cmake
     firefox
     chromium
-    google-chrome
+    #google-chrome
     i3status
     dmenu
     pavucontrol
@@ -88,6 +88,13 @@
     xorg.xdpyinfo
     bc
     kcachegrind
+    unzip
+    #android-studio
+    jdk
+    zip
+    wireshark-gtk
+    mitmproxy
+    ripgrep
   ];
 
 

@@ -208,7 +208,7 @@
     listeners = [
         {
             port = 8448;
-            bind_address = "";
+            bind_address = "::";
             type = "http";
             tls = true;
             x_forwarded = false;
@@ -218,7 +218,7 @@
         }
         {
             port = 8008;
-            bind_address = "localhost";
+            bind_address = "::";
             type = "http";
             tls = false;
             x_forwarded = true;
@@ -238,6 +238,7 @@
     trusted_third_party_id_servers = [ "vector.im" ];
     app_service_config_files = [
         "/home/nathan/matrix-puppet-facebook/facebook-registration.yaml"
+        "/home/nathan/mautrix-telegram/registration.yaml"
         ];
  };
 

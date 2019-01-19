@@ -68,7 +68,7 @@
     #sway
     #dmenu-wayland
     #xwayland
-    steam
+    #steam
     st
     lsof
     libreoffice
@@ -88,7 +88,7 @@
     bc
     kcachegrind
     unzip
-    #android-studio
+    android-studio
     #jdk
     zip
     #zsh
@@ -96,6 +96,11 @@
     #mitmproxy
     ripgrep
     #openshot-qt
+    termite
+    audacity
+    evince
+    androidenv.platformTools
+    libinput
   ];
 
 
@@ -144,13 +149,13 @@
       });
     in {
       wlroots = super.wlroots.overrideAttrs (oldAttrs: rec {
-        name = "wlroots-0.1";
-        version = "0.1";
+        name = "wlroots-0.2";
+        version = "0.2";
         src = pkgs.fetchFromGitHub {
           owner = "swaywm";
           repo = "wlroots";
-          rev = "0.1";
-          sha256 = "0xfipgg2qh2xcf3a1pzx8pyh1aqpb9rijdyi0as4s6fhgy4w269c";
+          rev = "0.2";
+          sha256 = "0gfxawjlb736xl90zfv3n6zzf5n1cacgzflqi1zq1wn7wd3j6ppv";
         };
         nativeBuildInputs = [ my_meson ] ++ (builtins.tail oldAttrs.nativeBuildInputs);
         mesonFlags = [
@@ -161,13 +166,13 @@
         meta.broken = false;
       });
       sway = super.sway.overrideAttrs (oldAttrs: rec {
-        name = "sway-1.0-beta.1";
-        version = "1.0-beta.1";
+        name = "sway-1.0-beta.2";
+        version = "1.0-beta.2";
         src = pkgs.fetchFromGitHub {
           owner = "swaywm";
           repo = "sway";
-          rev = "1.0-beta.1";
-          sha256 = "0h9kgrg9mh2acks63z72bw3lwff32pf2nb4i7i5xhd9i6l4gfnqa";
+          rev = "1.0-beta.2";
+          sha256 = "0f9rniwizbc3vzxdy6rc47749p6gczfbgfdy4r458134rbl551hw";
         };
         #nativeBuildInputs = [ pkgs.pkgconfig pkgs.meson ];
         nativeBuildInputs = [ pkgs.pkgconfig my_meson pkgs.git pkgs.ninja ];
@@ -178,19 +183,21 @@
   };
 
   programs.sway.enable = true;
-  programs.sway.extraSessionCommands = ''
-    export XKB_DEFAULT_OPTIONS=ctrl:nocaps
-  '';
+  # DONE IN SWAY CONFIG NOW
+  #programs.sway.extraSessionCommands = ''
+    #export XKB_DEFAULT_OPTIONS=ctrl:nocaps
+  #'';
 
 
   # The NixOS release to be compatible with for stateful data such as databases.
   system.stateVersion = "unstable";
   #system.nixos.stateVersion = "unstable";
-
+  users.groups.plugdev = {};
+  users.groups.adbusers = {};
   users.extraUsers.nathan = {
 	  name = "nathan";
 	  group = "users";
-	  extraGroups = [ "wheel" "disk" "audio" "video" "networkmanager" "systemd-journal" "networkmanager" "sway" ];
+	  extraGroups = [ "wheel" "disk" "audio" "video" "networkmanager" "systemd-journal" "networkmanager" "sway" "plugdev" "adbusers"];
 	  createHome = true;
 	  home = "/home/nathan";
 	  shell = "/run/current-system/sw/bin/bash";

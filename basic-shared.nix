@@ -99,10 +99,12 @@
     termite
     audacity
     evince
-    androidenv.platformTools
+    #androidenv.platformTools
     libinput
+    feh
+    #imagemagick7Big
+    killall
   ];
-
 
   # List services that you want to enable:
 
@@ -136,50 +138,50 @@
     #st.conf = "/*entire config file...*/";
     #chromium.enableWideVine = true;
     #firefox.enableAdobeFlash = true;
-    packageOverrides = super:
-      let self = super.pkgs;
-      my_meson = super.meson.overrideAttrs (oldAttrs: rec {
-        version = "0.48.1";
-          src = pkgs.python3Packages.fetchPypi {
-            pname = "meson";
-            version = "0.48.1";
-            sha256 = "0ivlascy671bpincd76dhz0lpi78vcz6hpgh87z66d08chnkx2gg";
-        };
-        patches = [(builtins.head oldAttrs.patches)] ++ [(builtins.tail (builtins.tail oldAttrs.patches))] ++ [/home/nathan/vim_config/gir-git.patch];
-      });
-    in {
-      wlroots = super.wlroots.overrideAttrs (oldAttrs: rec {
-        name = "wlroots-0.2";
-        version = "0.2";
-        src = pkgs.fetchFromGitHub {
-          owner = "swaywm";
-          repo = "wlroots";
-          rev = "0.2";
-          sha256 = "0gfxawjlb736xl90zfv3n6zzf5n1cacgzflqi1zq1wn7wd3j6ppv";
-        };
-        nativeBuildInputs = [ my_meson ] ++ (builtins.tail oldAttrs.nativeBuildInputs);
-        mesonFlags = [
-          "-Dlibcap=enabled"
-          "-Dlogind=enabled"
-          "-Dxwayland=enabled"
-        ];
-        meta.broken = false;
-      });
-      sway = super.sway.overrideAttrs (oldAttrs: rec {
-        name = "sway-1.0-beta.2";
-        version = "1.0-beta.2";
-        src = pkgs.fetchFromGitHub {
-          owner = "swaywm";
-          repo = "sway";
-          rev = "1.0-beta.2";
-          sha256 = "0f9rniwizbc3vzxdy6rc47749p6gczfbgfdy4r458134rbl551hw";
-        };
-        #nativeBuildInputs = [ pkgs.pkgconfig pkgs.meson ];
-        nativeBuildInputs = [ pkgs.pkgconfig my_meson pkgs.git pkgs.ninja ];
-        buildInputs = oldAttrs.buildInputs ++ [pkgs.wlroots pkgs.wayland-protocols];
-        cmakeFlags = "";
-      });
-    };
+    #packageOverrides = super:
+      #let self = super.pkgs;
+      #my_meson = super.meson.overrideAttrs (oldAttrs: rec {
+        #version = "0.48.1";
+          #src = pkgs.python3Packages.fetchPypi {
+            #pname = "meson";
+            #version = "0.48.1";
+            #sha256 = "0ivlascy671bpincd76dhz0lpi78vcz6hpgh87z66d08chnkx2gg";
+        #};
+        #patches = [(builtins.head oldAttrs.patches)] ++ [(builtins.tail (builtins.tail oldAttrs.patches))] ++ [/home/nathan/vim_config/gir-git.patch];
+      #});
+    #in {
+      #wlroots = super.wlroots.overrideAttrs (oldAttrs: rec {
+        #name = "wlroots-0.2";
+        #version = "0.2";
+        #src = pkgs.fetchFromGitHub {
+          #owner = "swaywm";
+          #repo = "wlroots";
+          #rev = "0.2";
+          #sha256 = "0gfxawjlb736xl90zfv3n6zzf5n1cacgzflqi1zq1wn7wd3j6ppv";
+        #};
+        #nativeBuildInputs = [ my_meson ] ++ (builtins.tail oldAttrs.nativeBuildInputs);
+        #mesonFlags = [
+          #"-Dlibcap=enabled"
+          #"-Dlogind=enabled"
+          #"-Dxwayland=enabled"
+        #];
+        #meta.broken = false;
+      #});
+      #sway = super.sway.overrideAttrs (oldAttrs: rec {
+        #name = "sway-1.0-beta.2";
+        #version = "1.0-beta.2";
+        #src = pkgs.fetchFromGitHub {
+          #owner = "swaywm";
+          #repo = "sway";
+          #rev = "1.0-beta.2";
+          #sha256 = "0f9rniwizbc3vzxdy6rc47749p6gczfbgfdy4r458134rbl551hw";
+        #};
+        ##nativeBuildInputs = [ pkgs.pkgconfig pkgs.meson ];
+        #nativeBuildInputs = [ pkgs.pkgconfig my_meson pkgs.git pkgs.ninja ];
+        #buildInputs = oldAttrs.buildInputs ++ [pkgs.wlroots pkgs.wayland-protocols];
+        #cmakeFlags = "";
+      #});
+    #};
   };
 
   programs.sway.enable = true;

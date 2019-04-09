@@ -56,7 +56,8 @@
     gcc
     gnumake
     cmake
-    firefox
+    #firefox
+    firefox-wayland
     chromium
     google-chrome
     i3status
@@ -104,6 +105,7 @@
     feh
     #imagemagick7Big
     killall
+    alacritty
   ];
 
   # List services that you want to enable:

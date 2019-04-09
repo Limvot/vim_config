@@ -136,11 +136,13 @@ mode "resize" {
 
 bindsym $mod+r mode "resize"
 
+#input 1739:0:Synaptics_TM2722-0 {
+input 1739:0:Synaptics_TM2722-001 {
+#input 2:7:SynPS/2_Synaptics_TouchPad {
+    tap enabled
+}
 input 1:1:AT_Translated_Set_2_keyboard {
     xkb_options ctrl:nocaps
-}
-input 1739:0:Synaptics_TM2722-001 {
-    tap enabled
 }
 
 # Start i3bar to display a workspace bar (plus the system information i3status

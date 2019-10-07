@@ -9,6 +9,7 @@
     [ # Include the results of the hardware scan.
       #./hardware-configuration.nix
       /etc/nixos/hardware-configuration.nix
+      /etc/nixos/mautrix-telegram.nix
     ];
 
   # Use the GRUB 2 boot loader.
@@ -36,7 +37,6 @@
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
-    cmake
     gcc
     gdb
     gnumake
@@ -45,14 +45,15 @@
     tmux
     git
     vim
-#    neovim    
     wget
     unzip
     iftop
     openssl
-    jdk
     maven
     nodejs
+    ripgrep
+    file
+    mautrix-telegram
   ];
 
   # List services that you want to enable:
@@ -60,6 +61,7 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.permitRootLogin = "no";
+  services.openssh.gatewayPorts = "yes";
 
   users.extraUsers.nathan = {
     name = "nathan";
@@ -79,92 +81,6 @@
     size = 4096;
   }];
 
-  services.nginx = {
-    enable = true;
-    httpConfig = ''
-
-      gzip on;
-      gzip_min_length 1024;
-      gzip_proxied any;
-      gzip_vary on;
-      gzip_types text/plain text/xml text/css application/x-javascript application/javascript application/json;
-
-      server {
-        listen *:80;
-        listen [::]:80;
-        server_name _;
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        #location / {
-        #  return 301 https://$host$request_uri;
-        #}
-      }
-      server {
-        server_name kraken-lang.org;
-        listen 443 ssl;
-        listen *:80;
-        listen [::]:80;
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        ssl_certificate ${config.security.acme.directory}/kraken-lang.org/fullchain.pem;
-        ssl_certificate_key ${config.security.acme.directory}/kraken-lang.org/key.pem;
-        root /var/www/kraken-by-example/stage/_book;
-      }
-      server {
-        server_name www.kraken-lang.org;
-        listen 443 ssl;
-        listen *:80;
-        listen [::]:80;
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        ssl_certificate ${config.security.acme.directory}/www.kraken-lang.org/fullchain.pem;
-        ssl_certificate_key ${config.security.acme.directory}/www.kraken-lang.org/key.pem;
-        root /var/www/kraken-by-example/stage/_book;
-      }
-      server {
-        server_name play.kraken-lang.org;
-        listen 443 ssl;
-        listen *:80;
-        listen [::]:80;
-        location / { proxy_pass http://127.0.0.1:8001; }
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        ssl_certificate ${config.security.acme.directory}/play.kraken-lang.org/fullchain.pem;
-        ssl_certificate_key ${config.security.acme.directory}/play.kraken-lang.org/key.pem;
-      }
-      server {
-        server_name room409.xyz;
-        listen 443 ssl;
-        listen *:80;
-        listen [::]:80;
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        location /_matrix {
-            proxy_pass http://localhost:8008;
-            proxy_set_header X-Forwarded-For $remote_addr;
-        }
-        ssl_certificate ${config.security.acme.directory}/room409.xyz/fullchain.pem;
-        ssl_certificate_key ${config.security.acme.directory}/room409.xyz/key.pem;
-        root /var/www/room409.xyz;
-      }
-      server {
-        server_name mangagaga.room409.xyz;
-        listen 443 ssl;
-        listen *:80;
-        listen [::]:80;
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        ssl_certificate ${config.security.acme.directory}/mangagaga.room409.xyz/fullchain.pem;
-        ssl_certificate_key ${config.security.acme.directory}/mangagaga.room409.xyz/key.pem;
-        root /var/www/mangagaga.room409.xyz;
-        autoindex on;
-        types  { application/octet-stream  apk; }
-      }
-      server {
-        server_name alexa.room409.xyz;
-        listen 443 ssl;
-        location / { proxy_pass https://127.0.0.1:8888; }
-        location /.well-known/acme-challenge { root /var/www/challenges; }
-        ssl_certificate ${config.security.acme.directory}/alexa.room409.xyz/fullchain.pem;
-        ssl_certificate_key ${config.security.acme.directory}/alexa.room409.xyz/key.pem;
-      }
-    '';
-  };
-
  security.acme.certs."kraken-lang.org" = {
    webroot = "/var/www/challenges";
    email = "miloignis@gmail.com";
@@ -183,72 +99,199 @@
  security.acme.certs."room409.xyz" = {
    webroot = "/var/www/challenges";
    email = "miloignis@gmail.com";
-   postRun = "systemctl restart nginx.service && cp ${config.security.acme.directory}/room409.xyz/fullchain.pem /var/lib/matrix-synapse/ && cp ${config.security.acme.directory}/room409.xyz/key.pem /var/lib/matrix-synapse && chown -R :matrix-synapse /var/lib/matrix-synapse && chmod -R g+rX /var/lib/matrix-synapse";
+   postRun = ''systemctl restart nginx.service && cp ${config.security.acme.certs."room409.xyz".directory}/fullchain.pem /var/lib/matrix-synapse/ && cp ${config.security.acme.certs."room409.xyz".directory}/key.pem /var/lib/matrix-synapse && chown -R :matrix-synapse /var/lib/matrix-synapse && chmod -R g+rX /var/lib/matrix-synapse'';
+   #postRun = "systemctl restart nginx.service";
  };
- security.acme.certs."mangagaga.room409.xyz" = {
-   webroot = "/var/www/challenges";
-   email = "miloignis@gmail.com";
-   postRun = "systemctl restart nginx.service";
- };
- security.acme.certs."alexa.room409.xyz" = {
+ security.acme.certs."riot.room409.xyz" = {
    webroot = "/var/www/challenges";
    email = "miloignis@gmail.com";
    postRun = "systemctl restart nginx.service";
  };
 
- services.matrix-synapse = {
+  services.nginx = {
     enable = true;
-    no_tls = false;
-    tls_certificate_path = "/var/lib/matrix-synapse/fullchain.pem";
-    tls_private_key_path = "/var/lib/matrix-synapse/key.pem";
-    tls_dh_params_path = null;
-    server_name = "room409.xyz";
-    web_client = true;
-    public_baseurl = "https://room409.xyz/";
-    listeners = [
-        {
-            port = 8448;
-            bind_address = "::";
-            type = "http";
-            tls = true;
-            x_forwarded = false;
-            resources = [
-                { names = ["federation"]; compress = false; }
-            ];
-        }
-        {
-            port = 8008;
-            bind_address = "::";
-            type = "http";
-            tls = false;
-            x_forwarded = true;
-            resources = [
-                { names = ["client" "webclient"]; compress = true; }
-            ];
-        }
-    ];
-    verbose = "0";
-    database_type = "sqlite3";
-    url_preview_enabled = false;
-    enable_registration = true;
-    registration_shared_secret = null;
-    enable_metrics = true;
-    report_stats = true;
-    allow_guest_access = true;
-    trusted_third_party_id_servers = [ "vector.im" ];
-    app_service_config_files = [
-        "/home/nathan/matrix-puppet-facebook/facebook-registration.yaml"
-        "/home/nathan/mautrix-telegram/registration.yaml"
-        ];
- };
+    httpConfig = ''
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  # users.extraUsers.guest = {
-  #   isNormalUser = true;
-  #   uid = 1000;
-  # };
+      gzip on;
+      gzip_min_length 1024;
+      gzip_proxied any;
+      gzip_vary on;
+      gzip_types text/plain text/xml text/css application/x-javascript application/javascript application/json;
+
+      server {
+        listen *:80;
+        listen [::]:80;
+        server_name _;
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+      }
+      server {
+        server_name kraken-lang.org;
+        listen 443 ssl;
+        listen *:80;
+        listen [::]:80;
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+        ssl_certificate ${config.security.acme.certs."kraken-lang.org".directory}/fullchain.pem;
+        ssl_certificate_key ${config.security.acme.certs."kraken-lang.org".directory}/key.pem;
+        root /var/www/kraken-by-example/stage/_book;
+      }
+      server {
+        server_name www.kraken-lang.org;
+        listen 443 ssl;
+        listen *:80;
+        listen [::]:80;
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+        ssl_certificate ${config.security.acme.certs."www.kraken-lang.org".directory}/fullchain.pem;
+        ssl_certificate_key ${config.security.acme.certs."www.kraken-lang.org".directory}/key.pem;
+        root /var/www/kraken-by-example/stage/_book;
+      }
+      server {
+        server_name play.kraken-lang.org;
+        listen 443 ssl;
+        listen *:80;
+        listen [::]:80;
+        location / { proxy_pass http://127.0.0.1:8001; }
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+        ssl_certificate ${config.security.acme.certs."play.kraken-lang.org".directory}/fullchain.pem;
+        ssl_certificate_key ${config.security.acme.certs."play.kraken-lang.org".directory}/key.pem;
+      }
+      server {
+        client_max_body_size 10m;
+        server_name room409.xyz;
+        listen 443 ssl;
+        listen *:80;
+        listen [::]:80;
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+        location /.well-known/matrix/server {
+            add_header Content-Type application/json;
+            return 200 '{ "m.server": "room409.xyz:8448" }';
+        }
+        location /.well-known/matrix/client {
+            add_header Content-Type application/json;
+            add_header Access-Control-Allow-Origin *;
+            return 200 '{ "m.homeserver": {"base_url": "https://room409.xyz"}, "m.identity_server":  { "base_url": "https://vector.im"} }';
+        }
+        location /_matrix {
+            proxy_pass http://localhost:8008;
+            proxy_set_header X-Forwarded-For $remote_addr;
+        }
+        ssl_certificate ${config.security.acme.certs."room409.xyz".directory}/fullchain.pem;
+        ssl_certificate_key ${config.security.acme.certs."room409.xyz".directory}/key.pem;
+        root /var/www/room409.xyz;
+      }
+      server {
+        client_max_body_size 10m;
+        server_name riot.room409.xyz;
+        listen 443 ssl;
+        listen *:80;
+        listen [::]:80;
+        location /.well-known/acme-challenge { root /var/www/challenges; }
+        ssl_certificate ${config.security.acme.certs."riot.room409.xyz".directory}/fullchain.pem;
+        ssl_certificate_key ${config.security.acme.certs."riot.room409.xyz".directory}/key.pem;
+        root ${pkgs.riot-web.override { conf = ''{"default_server_name":"room409.xyz"}''; }};
+      }
+    '';
+  };
+
+  services.matrix-synapse = {
+     enable = true;
+     no_tls = false;
+     tls_certificate_path = "/var/lib/matrix-synapse/fullchain.pem";
+     tls_private_key_path = "/var/lib/matrix-synapse/key.pem";
+     #tls_certificate_path = ''${config.security.acme.certs."room409.xyz".directory}/fullchain.pem'';
+     #tls_private_key_path = ''${config.security.acme.certs."room409.xyz".directory}/key.pem'';
+     tls_dh_params_path = null;
+     server_name = "room409.xyz";
+     web_client = true;
+     public_baseurl = "https://room409.xyz/";
+     listeners = [
+         {
+             port = 8448;
+             bind_address = "::";
+             type = "http";
+             tls = true;
+             x_forwarded = false;
+             resources = [
+                 { names = ["federation"]; compress = false; }
+             ];
+         }
+         {
+             port = 8008;
+             bind_address = "::";
+             type = "http";
+             tls = false;
+             x_forwarded = true;
+             resources = [
+                 { names = ["client" "webclient"]; compress = true; }
+             ];
+         }
+     ];
+     verbose = "0";
+     database_type = "sqlite3";
+     url_preview_enabled = true;
+     enable_registration = true;
+     registration_shared_secret = null;
+     enable_metrics = true;
+     report_stats = true;
+     allow_guest_access = true;
+     trusted_third_party_id_servers = [ "vector.im" ];
+     app_service_config_files = [
+         #"/home/nathan/mautrix-telegram/registration.yaml"
+         #"/home/nathan/mautrix-facebook/registration.yaml"
+        #"/var/lib/mautrix-telegram/mautrix-telegram-registration.json"
+        "/etc/secrets/mautrix-telegram-registration.json"
+         ];
+  };
+  #nixpkgs.config = {
+   #packageOverrides = super:
+    #let self = super.pkgs;
+    #mautrix = super.python3.pkgs.buildPythonPackage rec {
+      #pname = "mautrix";
+      #version = "git-master";
+     #src = super.fetchgit {
+      #url = "https://github.com/tulir/mautrix-python";
+      #rev = "3845a707fa17006c894a093387a912e00187a335";
+      #sha256 = "0d2nw9vk4xx3gcpjcc6qkm5ynlq7d602lqzsx3fn8405msfx2hv0";
+     #};
+     #propagatedBuildInputs = [ super.python3.pkgs.aiohttp super.python3.pkgs.attrs ];
+    #};
+   #in {
+    #mautrix-telegram = super.mautrix-telegram.overrideAttrs (oldAttrs: rec {
+     #version = "git-master";
+     #src = super.fetchgit {
+      #url = "https://github.com/tulir/mautrix-telegram";
+      #rev = "6c312efc9ad3340691c360c7ff3445cdeb025edc";
+      #sha256 = "1nr0rzw7cakvm9xr84jp73qpyd4shk9bf4lc38vr87wpvadqyhrn";
+     #};
+     #propagatedBuildInputs = oldAttrs.propagatedBuildInputs ++ [ mautrix ]; });
+   #};
+  #};
+  services.mautrix-telegram = {
+    enable = true;
+    environmentFile = /etc/secrets/mautrix-telegram.env; # file containing the appservice and telegram tokens
+    settings = {
+      homeserver = {
+        address = "https://room409.xyz";
+        domain = "room409.xyz";
+      };
+      appservice = {
+        provisioning.enabled = false;
+        id = "telegram";
+        public = {
+          enabled = false;
+          prefix = "/public";
+          external = "http://domain.tld:8080/public";
+        };
+      };
+      bridge = {
+        relaybot.authless_portals = false;
+        permissions = {
+          "@miloignis:room409.xyz" = "admin";
+        };
+      };
+    };
+  };
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "17.09";
+  system.stateVersion = "19.09";
 
 }

@@ -9,7 +9,7 @@
     [ # Include the results of the hardware scan.
       #./hardware-configuration.nix
       /etc/nixos/hardware-configuration.nix
-      /etc/nixos/mautrix-telegram.nix
+      /home/nathan/vim_config/mautrix-telegram-service.nix
     ];
 
   # Use the GRUB 2 boot loader.
@@ -36,7 +36,11 @@
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with pkgs; let 
+    mautrix = callPackage /home/nathan/vim_config/mautrix.nix { };
+    fbchat-asyncio = callPackage /home/nathan/vim_config/fbchat-asyncio.nix { };
+    mautrix-facebook = callPackage /home/nathan/vim_config/mautrix-facebook.nix { inherit mautrix fbchat-asyncio; };
+  in [
     gcc
     gdb
     gnumake
@@ -54,6 +58,7 @@
     ripgrep
     file
     mautrix-telegram
+    mautrix-facebook
   ];
 
   # List services that you want to enable:

@@ -56,7 +56,7 @@ alias ta='cd ~/currentSemester/TA2CS110'
 
 alias minecraft='java -jar ~/minecraft/Minecraft.jar'
 alias nightly='~/firefox/firefox'
-setxkbmap -layout us -option ctrl:nocaps
+#setxkbmap -layout us -option ctrl:nocaps
 
 # ex - archive extractor
 # usage: ex <file>

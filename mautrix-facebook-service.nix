@@ -3,15 +3,15 @@
 with lib;
 
 let
-  dataDir = "/var/lib/mautrix-telegram";
-  cfg = config.services.mautrix-telegram;
+  dataDir = "/var/lib/mautrix-facebook";
+  cfg = config.services.mautrix-facebook;
   # TODO: switch to configGen.json once RFC42 is implemented
-  serviceSettings = pkgs.writeText "mautrix-telegram-settings.json" (builtins.toJSON cfg.settings);
+  serviceSettings = pkgs.writeText "mautrix-facebook-settings.json" (builtins.toJSON cfg.settings);
 
 in {
   options = {
-    services.mautrix-telegram = {
-      enable = mkEnableOption "Mautrix-Telegram, a Matrix-Telegram hybrid puppeting/relaybot bridge";
+    services.mautrix-facebook = {
+      enable = mkEnableOption "Mautrix-Facebook, a Matrix-Facebook Messenger puppeting bridge";
 
       # TODO: switch to types.config.json as prescribed by RFC42 once it's implemented
       settings = mkOption rec {
@@ -19,9 +19,9 @@ in {
         apply = recursiveUpdate default;
         default = {
           appservice = rec {
-            database = "sqlite:///${dataDir}/mautrix-telegram.db";
+            database = "sqlite:///${dataDir}/mautrix-facebook.db";
             hostname = "0.0.0.0";
-            port = 8080;
+            port = 8081;
             address = "http://localhost:${toString port}";
           };
 
@@ -150,8 +150,8 @@ in {
 #      };
 #    };
 
-    systemd.services.mautrix-telegram = {
-      description = "Mautrix-Telegram, a Matrix-Telegram hybrid puppeting/relaybot bridge.";
+    systemd.services.mautrix-facebook = {
+      description = "Mautrix-Facebook, a Matrix-Facebook Messenger puppeting bridge.";
 
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ] ++ cfg.serviceDependencies;
@@ -159,9 +159,9 @@ in {
 
       preStart = ''
         # run automatic database init and migration scripts
-        ${pkgs.mautrix-telegram.alembic}/bin/alembic -x config='${serviceSettings}' upgrade head
-        cp ${serviceSettings} ${dataDir}/mautrix-telegram.conf
-        chmod 777 ${dataDir}/mautrix-telegram.conf
+        ${pkgs.mautrix-facebook.alembic}/bin/alembic -x config='${serviceSettings}' upgrade head
+        cp ${serviceSettings} ${dataDir}/mautrix-facebook.conf
+        chmod 777 ${dataDir}/mautrix-facebook.conf
       '';
 
       serviceConfig = {
@@ -186,10 +186,13 @@ in {
         StateDirectory = baseNameOf dataDir;
         
         EnvironmentFile = cfg.environmentFile;
-        WorkingDirectory = pkgs.mautrix-telegram; # necessary for the database migration scripts to be found
+        WorkingDirectory = pkgs.mautrix-facebook; # necessary for the database migration scripts to be found
 
+        #ExecStart = ''
+          #${pkgs.mautrix-facebook}/bin/mautrix-facebook --config='${dataDir}/mautrix-facebook.conf'
+        #'';
         ExecStart = ''
-          ${pkgs.mautrix-telegram}/bin/mautrix-telegram --config='${dataDir}/mautrix-telegram.conf' --registration='/etc/secrets/mautrix-facebook-registration.json'
+          ${pkgs.mautrix-facebook}/bin/mautrix-facebook --config='/etc/secrets/mautrix-facebook.conf'
         '';
       };
     };

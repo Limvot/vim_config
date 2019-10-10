@@ -10,6 +10,7 @@
       #./hardware-configuration.nix
       /etc/nixos/hardware-configuration.nix
       /home/nathan/vim_config/mautrix-telegram-service.nix
+      /home/nathan/vim_config/mautrix-facebook-service.nix
     ];
 
   # Use the GRUB 2 boot loader.
@@ -36,11 +37,7 @@
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
-  environment.systemPackages = with pkgs; let 
-    mautrix = callPackage /home/nathan/vim_config/mautrix.nix { };
-    fbchat-asyncio = callPackage /home/nathan/vim_config/fbchat-asyncio.nix { };
-    mautrix-facebook = callPackage /home/nathan/vim_config/mautrix-facebook.nix { inherit mautrix fbchat-asyncio; };
-  in [
+  environment.systemPackages = with pkgs; [
     gcc
     gdb
     gnumake
@@ -240,15 +237,18 @@
      allow_guest_access = true;
      trusted_third_party_id_servers = [ "vector.im" ];
      app_service_config_files = [
-         #"/home/nathan/mautrix-telegram/registration.yaml"
-         #"/home/nathan/mautrix-facebook/registration.yaml"
-        #"/var/lib/mautrix-telegram/mautrix-telegram-registration.json"
         "/etc/secrets/mautrix-telegram-registration.json"
-         ];
+        "/etc/secrets/mautrix-facebook-registration.json"
+     ];
   };
-  #nixpkgs.config = {
-   #packageOverrides = super:
-    #let self = super.pkgs;
+  nixpkgs.config = {
+    #mautrix = pkgs.callPackage /home/nathan/vim_config/mautrix.nix { };
+    #fbchat-asyncio = pkgs.callPackage /home/nathan/vim_config/fbchat-asyncio.nix { };
+    #mautrix-facebook = pkgs.callPackage /home/nathan/vim_config/mautrix-facebook.nix { inherit mautrix fbchat-asyncio; };
+   packageOverrides = super:
+    let self = super.pkgs;
+    mautrix = pkgs.callPackage /home/nathan/vim_config/mautrix.nix { };
+    fbchat-asyncio = pkgs.callPackage /home/nathan/vim_config/fbchat-asyncio.nix { };
     #mautrix = super.python3.pkgs.buildPythonPackage rec {
       #pname = "mautrix";
       #version = "git-master";
@@ -259,7 +259,8 @@
      #};
      #propagatedBuildInputs = [ super.python3.pkgs.aiohttp super.python3.pkgs.attrs ];
     #};
-   #in {
+   in {
+    mautrix-facebook = pkgs.callPackage /home/nathan/vim_config/mautrix-facebook.nix { inherit mautrix fbchat-asyncio; };
     #mautrix-telegram = super.mautrix-telegram.overrideAttrs (oldAttrs: rec {
      #version = "git-master";
      #src = super.fetchgit {
@@ -268,8 +269,8 @@
       #sha256 = "1nr0rzw7cakvm9xr84jp73qpyd4shk9bf4lc38vr87wpvadqyhrn";
      #};
      #propagatedBuildInputs = oldAttrs.propagatedBuildInputs ++ [ mautrix ]; });
-   #};
-  #};
+   };
+  };
   services.mautrix-telegram = {
     enable = true;
     environmentFile = /etc/secrets/mautrix-telegram.env; # file containing the appservice and telegram tokens
@@ -285,6 +286,31 @@
           enabled = false;
           prefix = "/public";
           external = "http://domain.tld:8080/public";
+        };
+      };
+      bridge = {
+        relaybot.authless_portals = false;
+        permissions = {
+          "@miloignis:room409.xyz" = "admin";
+        };
+      };
+    };
+  };
+  services.mautrix-facebook = {
+    enable = true;
+    environmentFile = /etc/secrets/mautrix-facebook.env; # file containing the appservice and telegram tokens
+    settings = {
+      homeserver = {
+        address = "https://room409.xyz";
+        domain = "room409.xyz";
+      };
+      appservice = {
+        provisioning.enabled = false;
+        id = "facebook";
+        public = {
+          enabled = false;
+          prefix = "/public";
+          external = "http://domain.tld:8081/public";
         };
       };
       bridge = {

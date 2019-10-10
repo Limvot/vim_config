@@ -1,5 +1,4 @@
-{ lib, python3, mautrix, fbchat-asyncio }:
-#{ lib, python3, mautrix-facebook }:
+{ lib, python3, mautrix, fbchat-asyncio, mautrix-facebook }:
 
 with python3.pkgs;
 
@@ -19,7 +18,6 @@ buildPythonPackage rec {
   propagatedBuildInputs = [
     Mako
     aiohttp
-    #mautrix-appservice
     fbchat-asyncio
     mautrix
     sqlalchemy
@@ -60,6 +58,5 @@ buildPythonPackage rec {
     homepage = https://github.com/tulir/mautrix-facebook;
     description = "A Matrix-Facebook Messenger puppeting bridge";
     license = licenses.agpl3Plus;
-    #maintainers = with maintainers; [ nyanloutre ma27 ];
   };
 }

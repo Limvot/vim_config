@@ -1,35 +1,77 @@
-{ lib, python3, mautrix, fbchat-asyncio, mautrix-facebook }:
+{ lib, python3, mautrix-facebook }:
 
 with python3.pkgs;
 
 buildPythonPackage rec {
   pname = "mautrix-facebook";
-  version = "0.1.0.dev12";
+  version = "0.1.0.dev15";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "1asq87sl1154k3vvwxn0f9lshydhd41in1lwr6ckz57gbnsnamyj";
+    sha256 = "0k4q9d2dhmw6pdp9qlgwvki4qn27nk9n3kk2y0fcbpvp3c7x6ci6";
   };
 
   postPatch = ''
     sed -i -e '/alembic>/d' setup.py
   '';
 
-  propagatedBuildInputs = [
-    Mako
-    aiohttp
-    fbchat-asyncio
-    mautrix
-    sqlalchemy
-    CommonMark
-    ruamel_yaml
-    future-fstrings
-    python_magic
-    telethon
-    telethon-session-sqlalchemy
-    pillow
-    lxml
-    setuptools
+  propagatedBuildInputs = 
+   let 
+    tulir-hbmqtt = buildPythonPackage rec {
+       pname = "tulir-hbmqtt";
+       version = "0.9.6.dev20191123131128";
+      
+       src = fetchPypi {
+         inherit pname version;
+         sha256 = "0xrla3nc99hnvxp70gz9f6mmh1mlb92sdggdb2j5bflwap2g58l7";
+       };
+      
+       propagatedBuildInputs = [
+         transitions
+         passlib
+         websockets
+         pyyaml
+         docopt
+         setuptools
+       ];
+       doCheck = false;
+       disabled = pythonOlder "3.5";
+       meta = with lib; {
+         homepage = https://github.com/beerfactory/hbmqtt;
+         description = "MQTT client/broker using Python 3.4 asyncio library";
+         license = licenses.mit;
+       };
+     };
+    fbchat-asyncio = buildPythonPackage rec {
+       pname = "fbchat-asyncio";
+       version = "0.3.0";
+      
+       src = fetchPypi {
+         inherit pname version;
+         sha256 = "0z5jkyi864gz7hp6d7nam04nhz8p25r58k512bpgjdskg498cgm4";
+       };
+      
+       propagatedBuildInputs = [
+         tulir-hbmqtt
+         python_magic
+         beautifulsoup4
+         aiohttp
+         aenum
+       ];
+       #doCheck = false;
+       disabled = pythonOlder "3.5";
+       meta = with lib; {
+         homepage = https://github.com/tulir/fbchat-asyncio;
+         description = "Facebook Messenger library for Python/Asyncio";
+         license = licenses.bsd3;
+       };
+     };
+      
+   in [
+   aiohttp
+   fbchat-asyncio
+   mautrix
+   ruamel_yaml
   ];
 
   # No tests available

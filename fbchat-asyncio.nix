@@ -4,11 +4,11 @@ with python3.pkgs;
 
 buildPythonPackage rec {
   pname = "fbchat-asyncio";
-  version = "0.2.4";
+  version = "0.3.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "1sjp6hwfzzjfkq6dlxhdlbd0iwq736kv8d4f4w1zqk0dq7b91lgr";
+    sha256 = "0z5jkyi864gz7hp6d7nam04nhz8p25r58k512bpgjdskg498cgm4";
   };
 
   propagatedBuildInputs = [

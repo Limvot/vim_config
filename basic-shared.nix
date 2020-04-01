@@ -12,7 +12,6 @@
 
   # No boot information shared
 
-
   # Hostname not shared
 
   # Select internationalisation properties.
@@ -30,19 +29,19 @@
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
     #xonotic
+    #gimp
     nmap
     iw
     rfkill
-    haskellPackages.idris
-    evince
-    i3lock
-    psmisc
+    #evince
+    #i3lock
+    #psmisc
     htop
-    pv
+    #pv
     networkmanagerapplet
     python3
     python
-    clisp
+    #clisp
     cryptsetup
     wget
     vim
@@ -50,26 +49,28 @@
     git
     gdb
     valgrind
-    cowsay
+    #cowsay
     tmux
-    neovim
+    #neovim
     silver-searcher
     gcc
     gnumake
     cmake
-    firefox
+    #firefox
     #chromium
     #google-chrome
+    #firefox
+    firefox-wayland
     i3status
     dmenu
     pavucontrol
     sakura
     gparted
-    emscripten
+    #emscripten
     #sway
     #dmenu-wayland
     #xwayland
-    steam
+    #steam
     st
     lsof
     libreoffice
@@ -78,18 +79,35 @@
     cloc
     clang
     lm_sensors
-    dmidecode
+    #dmidecode
     xclip
     #(pkgs.st.overrideAttrs (attrs: { configFile = builtins.readFile /home/nathan/vim_config/config.h; }))
-    openvpn
-    synergy
+    #openvpn
+    #synergy
     file
-    kakoune
+    #kakoune
     xorg.xdpyinfo
     bc
     kcachegrind
+    unzip
+    android-studio
+    #jdk
+    zip
+    #zsh
+    #wireshark-gtk
+    #mitmproxy
+    ripgrep
+    #openshot-qt
+    termite
+    audacity
+    evince
+    #androidenv.platformTools
+    libinput
+    feh
+    #imagemagick7Big
+    killall
+    alacritty
   ];
-
 
   # List services that you want to enable:
 
@@ -102,28 +120,89 @@
   #networking.wireless.enable = true;    # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;
   networking.firewall.enable = false;
-  services.xserver.displayManager.sessionCommands = "${pkgs.networkmanagerapplet}/bin/nm-applet &";
+  #services.xserver.displayManager.sessionCommands = "${pkgs.networkmanagerapplet}/bin/nm-applet &";
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
-  services.xserver.layout = "us";
+  #services.xserver.enable = true;
+  #services.xserver.layout = "us";
   # services.xserver.xkbOptions = "eurosign:e";
 
   # Enable the KDE Desktop Environment.
   #services.xserver.displayManager.kdm.enable = true;
   #services.xserver.desktopManager.kde.enable = true;
   #services.xserver.displayManager.sddm.enable = true;
-  services.xserver.displayManager.slim.enable = true;
-  services.xserver.windowManager.i3.enable = true;
+
+  #services.xserver.displayManager.slim.enable = true;
+  #services.xserver.windowManager.i3.enable = true;
+
+  nixpkgs.config = {
+    allowUnfree = true;
+
+    #st.conf = "/*entire config file...*/";
+    #chromium.enableWideVine = true;
+    #firefox.enableAdobeFlash = true;
+    #packageOverrides = super:
+      #let self = super.pkgs;
+      #my_meson = super.meson.overrideAttrs (oldAttrs: rec {
+        #version = "0.48.1";
+          #src = pkgs.python3Packages.fetchPypi {
+            #pname = "meson";
+            #version = "0.48.1";
+            #sha256 = "0ivlascy671bpincd76dhz0lpi78vcz6hpgh87z66d08chnkx2gg";
+        #};
+        #patches = [(builtins.head oldAttrs.patches)] ++ [(builtins.tail (builtins.tail oldAttrs.patches))] ++ [/home/nathan/vim_config/gir-git.patch];
+      #});
+    #in {
+      #wlroots = super.wlroots.overrideAttrs (oldAttrs: rec {
+        #name = "wlroots-0.2";
+        #version = "0.2";
+        #src = pkgs.fetchFromGitHub {
+          #owner = "swaywm";
+          #repo = "wlroots";
+          #rev = "0.2";
+          #sha256 = "0gfxawjlb736xl90zfv3n6zzf5n1cacgzflqi1zq1wn7wd3j6ppv";
+        #};
+        #nativeBuildInputs = [ my_meson ] ++ (builtins.tail oldAttrs.nativeBuildInputs);
+        #mesonFlags = [
+          #"-Dlibcap=enabled"
+          #"-Dlogind=enabled"
+          #"-Dxwayland=enabled"
+        #];
+        #meta.broken = false;
+      #});
+      #sway = super.sway.overrideAttrs (oldAttrs: rec {
+        #name = "sway-1.0-beta.2";
+        #version = "1.0-beta.2";
+        #src = pkgs.fetchFromGitHub {
+          #owner = "swaywm";
+          #repo = "sway";
+          #rev = "1.0-beta.2";
+          #sha256 = "0f9rniwizbc3vzxdy6rc47749p6gczfbgfdy4r458134rbl551hw";
+        #};
+        ##nativeBuildInputs = [ pkgs.pkgconfig pkgs.meson ];
+        #nativeBuildInputs = [ pkgs.pkgconfig my_meson pkgs.git pkgs.ninja ];
+        #buildInputs = oldAttrs.buildInputs ++ [pkgs.wlroots pkgs.wayland-protocols];
+        #cmakeFlags = "";
+      #});
+    #};
+  };
+
+  programs.sway.enable = true;
+  # DONE IN SWAY CONFIG NOW
+  #programs.sway.extraSessionCommands = ''
+    #export XKB_DEFAULT_OPTIONS=ctrl:nocaps
+  #'';
 
 
   # The NixOS release to be compatible with for stateful data such as databases.
   system.stateVersion = "unstable";
-
+  #system.nixos.stateVersion = "unstable";
+  users.groups.plugdev = {};
+  users.groups.adbusers = {};
   users.extraUsers.nathan = {
 	  name = "nathan";
 	  group = "users";
-	  extraGroups = [ "wheel" "disk" "audio" "video" "networkmanager" "systemd-journal" "networkmanager" ];
+	  extraGroups = [ "wheel" "disk" "audio" "video" "networkmanager" "systemd-journal" "networkmanager" "sway" "plugdev" "adbusers"];
 	  createHome = true;
 	  home = "/home/nathan";
 	  shell = "/run/current-system/sw/bin/bash";
@@ -137,14 +216,6 @@
 
       # Steam stuff
       opengl.driSupport32Bit = true;
-  };
-  
-  nixpkgs.config = {
-    allowUnfree = true;
-    
-    #st.conf = "/*entire config file...*/";
-    #chromium.enableWideVine = true;
-    #firefox.enableAdobeFlash = true;
   };
 
 }

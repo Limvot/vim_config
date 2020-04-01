@@ -20,7 +20,7 @@
   boot = {
   	  initrd.luks.devices = [{
 	  	name = "cryptVG";
-		device = "/dev/sda6";
+		device = "/dev/disk/by-uuid/1d8f8207-8340-45b9-9046-ce9aa9f88062";
 		preLVM = true;
 	  }];
 	  loader = {

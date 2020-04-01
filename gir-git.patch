@@ -1,0 +1,15 @@
+diff --git a/mesonbuild/modules/gnome.py b/mesonbuild/modules/gnome.py
+index 46df53e9..17e167cc 100644
+--- a/mesonbuild/modules/gnome.py
++++ b/mesonbuild/modules/gnome.py
+@@ -790,6 +790,10 @@ class GnomeModule(ExtensionModule):
+         scan_command += self._scan_langs(state, [lc[0] for lc in langs_compilers])
+         scan_command += list(external_ldflags)
+ 
++        fallback_libpath = girtargets[0].get_custom_install_dir()[0] if len(girtargets) == 1 else None
++        if fallback_libpath is not None and isinstance(fallback_libpath, str) and len(fallback_libpath) > 0 and fallback_libpath[0] == "/":
++            scan_command += ['--fallback-library-path=' + fallback_libpath]
++
+         scan_target = self._make_gir_target(state, girfile, scan_command, depends, kwargs)
+ 
+         typelib_output = '%s-%s.typelib' % (ns, nsversion)

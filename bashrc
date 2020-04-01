@@ -41,8 +41,8 @@ alias cloud='ssh 104.238.179.164'
 
 alias l='i3lock; systemctl suspend'
 
-#alias nixc='vim /home/nathan/vim_config/configuration.nix'
-alias nixc='vim /etc/nixos/configuration.nix'
+alias nixc='vim /home/nathan/vim_config/basic-shared.nix'
+#alias nixc='vim /etc/nixos/configuration.nix'
 #alias nixc='sudo vim /etc/nixos/configuration.nix'
 alias nixr='sudo nixos-rebuild switch'
 alias nixu='sudo nixos-rebuild switch --upgrade'
@@ -56,7 +56,7 @@ alias ta='cd ~/currentSemester/TA2CS110'
 
 alias minecraft='java -jar ~/minecraft/Minecraft.jar'
 alias nightly='~/firefox/firefox'
-setxkbmap -layout us -option ctrl:nocaps
+#setxkbmap -layout us -option ctrl:nocaps
 
 # ex - archive extractor
 # usage: ex <file>

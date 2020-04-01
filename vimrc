@@ -23,6 +23,10 @@ autocmd! bufwritepost .vimrc source %
 autocmd! bufwritepost init.vim source %
 autocmd! bufwritepost vimrc source %
 
+" replace currently selected text with default register
+" without yanking it
+vnoremap <leader>p "_dP
+
 nnoremap <leader>v <C-w>v<C-w>l
 nnoremap <leader>h <C-w>s<C-w>l
 :nnoremap <Space> :exec "normal i".nr2char(getchar())."\e"<CR>

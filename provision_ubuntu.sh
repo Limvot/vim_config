@@ -3,12 +3,12 @@
 set -e
 
 #sudo yum groupinstall 'Development Tools'
-#sudo yum install ncurses-devel openssl-devel
+#sudo yum install ncurses-devel openssl-devel perl-devel perl-CPAN
 
-#sudo apt-get update
-#sudo apt-get upgrade
-#sudo apt-get install vim git ncurses-dev
-#sudo apt-get install i3 dmenu
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install vim git ncurses-dev autoconf zlib1g-dev libssl-dev libperl-dev
+sudo apt-get install i3 dmenu
 #git clone https://github.com/Limvot/vim_config.git
 #cd vim_config
 #git submodule init
@@ -88,7 +88,7 @@ easy_pkg git https://github.com/git/git/archive/v2.12.2.tar.gz
 # suckless st
 if ! [ -s st ]
 then
-    #sudo apt install libx11-dev libxft-dev libxext-dev
+    sudo apt install libx11-dev libxft-dev libxext-dev
     #sudo yum install libX11-devel libXft-devel libXext-devel
     git clone git://git.suckless.org/st
     cd st

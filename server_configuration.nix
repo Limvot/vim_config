@@ -25,8 +25,54 @@
 
   # networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.firewall.enable = false;
+  #networking.firewall.enable = false;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
+
+  # WireGuard
+  networking.nat.enable = true;
+  networking.nat.externalInterface = "ens3";
+  networking.nat.internalInterfaces = ["wg0"];
+  networking.firewall = {
+    #enable = false;
+    allowedTCPPorts = [ 22 80 443 8448 2222 ];
+    allowedUDPPorts = [ 22 80 443 8448 2222 51820 ];
+    #extraCommands = ''
+    #  iptables -t nat -A POSTROUTING -s 10.100.0.0/24 -o ens3 -j MASQUERADE
+    #'';
+    extraCommands = ''
+        iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+    '';
+  };
+  networking.wireguard.interfaces = {
+    wg0 = {
+      ips = [ "10.100.0.1/24" ];
+      listenPort = 51820;
+      privateKeyFile = "/home/nathan/wireguard-keys/private";
+      peers = [
+        {
+          publicKey = "FqJShA/dz8Jj73tSyjzcsyASOEv6uAFs6e/vRol8ygc=";
+          allowedIPs = [ "10.100.0.2/32" ];
+        }
+        {
+          publicKey = "aAgay9pn/3Vj1nHC4GFY2vysW12n5VFyuUcB5+0pux8=";
+          allowedIPs = [ "10.100.0.3/32" ];
+        }
+        {
+          publicKey = "u55Jkd4dRdBqnhliIP9lwsxIYow2Tr8BhPPhKFtaVAc=";
+          allowedIPs = [ "10.100.0.4/32" ];
+        }
+        {
+          publicKey = "J/BWU33DYMkoWOKSZWrtAqWciep03YuicaDMD5MCqWg=";
+          allowedIPs = [ "10.100.0.5/32" ];
+        }
+        {
+          publicKey = "y2gAEhg1vwK1+nka2Knu7NyOk8HaaY4w18nD6EMyLSk=";
+          allowedIPs = [ "10.100.0.6/32" ];
+        }
+      ];
+    };
+  };
+
 
   # Select internationalisation properties.
   # i18n = {
@@ -53,16 +99,18 @@
     unzip
     iftop
     openssl
-    maven
-    nodejs
     ripgrep
     file
     mautrix-telegram
     mautrix-whatsapp
-    #mautrix-facebook
+    wireguard
+    jq
+    (python3.withPackages (pythonPackages: with pythonPackages; [ bcrypt pyyaml ]))
   ];
 
   # List services that you want to enable:
+
+  services.journald.extraConfig = "SystemMaxUse=50M";
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
@@ -86,16 +134,58 @@
     size = 4096;
   }];
 
+  security.acme.email = "miloignis@gmail.com";
+  security.acme.acceptTerms = true;
   services.nginx = {
     enable = true;
     recommendedGzipSettings = true;
     recommendedOptimisation = true;
     #recommendedProxySettings = true;
     recommendedTlsSettings = true;
+    virtualHosts."kraken-lang.org" = {
+      forceSSL = true;
+      enableACME = true;
+      root = "/var/www/kraken-lang.org";
+      locations."/k_prime.wasm".extraConfig = ''
+           default_type application/wasm;
+      '';
+    };
+    virtualHosts."kenny.room409.xyz" = {
+      forceSSL = true;
+      enableACME = true;
+      root = "/var/www/kenny.room409.xyz";
+      locations."/k_prime.wasm".extraConfig = ''
+           default_type application/wasm;
+      '';
+    };
+    #virtualHosts."chat.room409.xyz" = {
+      #forceSSL = true;
+      #enableACME = true;
+      ##root = let my_ocrcc_chatbox = pkgs.fetchFromGitHub {
+        ##owner = "Limvot";
+        ##repo = "ocrcc-chatbox";
+        ##rev = "2d1ca4927c3727cdc2056549870809a8eb8a83c1";
+        ##sha256 = "0r8mw9wa6jsz004hb784bwnlhk3s2vw45ngrrwaxar86zz32xxfr";
+      ##}; in pkgs.callPackage "${my_ocrcc_chatbox}/default.nix" {};
+
+      #root = "${pkgs.callPackage /home/nathan/ocrcc-chatbox/default.nix { }}/libexec/safesupport-chatbox/node_modules/safesupport-chatbox/dist";
+    #};
     virtualHosts."riot.room409.xyz" = {
       forceSSL = true;
       enableACME = true;
-      root = pkgs.riot-web.override { conf = ''{"default_server_name":"room409.xyz"}''; };
+      root = (pkgs.riot-web.overrideAttrs ( oldAttrs:{
+        #version = "1.6.0";
+        src = pkgs.fetchurl {
+          #url = "https://github.com/vector-im/riot-web/releases/download/v${version}/riot-v${version}.tar.gz";
+          url = "https://github.com/vector-im/riot-web/releases/download/v1.6.0/riot-v1.6.0.tar.gz";
+          sha256 = "1mm4xk69ya1k3gz6jjhc4njx7b3rp157jmrqsxr5i382zs035ff7";
+        };
+      })).override {
+        conf = {
+          default_server_name = "room409.xyz";
+          default_server_config = "";
+        };
+      };
     };
     virtualHosts."room409.xyz" = {
       addSSL = true;
@@ -129,7 +219,6 @@
      no_tls = true;
      tls_dh_params_path = null;
      server_name = "room409.xyz";
-     web_client = true;
      public_baseurl = "https://room409.xyz/";
      listeners = [
          {
@@ -147,7 +236,7 @@
      verbose = "0";
      database_type = "sqlite3";
      url_preview_enabled = true;
-     enable_registration = true;
+     enable_registration = false;
      registration_shared_secret = null;
      enable_metrics = true;
      report_stats = true;
@@ -191,7 +280,7 @@
   };
   services.mautrix-facebook = {
     enable = true;
-    environmentFile = /etc/secrets/mautrix-facebook.env; # file containing the appservice and telegram tokens
+    environmentFile = /etc/secrets/mautrix-facebook.env; # file containing the appservice token
     settings = {
       homeserver = {
         address = "https://room409.xyz";

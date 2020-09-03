@@ -5,11 +5,11 @@ with python3.pkgs;
 
 buildPythonPackage rec {
   pname = "mautrix";
-  version = "0.4.0.dev72";
+  version = "0.5.1";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "1kbq4g39i3n6w12g15k72jg1sk5g5rzs1hx9asnrqy1972817whz";
+    sha256 = "1aac5f5fvff0hwbi819qify23n4mdyhs3c27ab1cdhb26mngip58";
   };
 
   propagatedBuildInputs = [

@@ -57,9 +57,10 @@
     gnumake
     cmake
     #firefox
+    #chromium
+    #google-chrome
+    #firefox
     firefox-wayland
-    chromium
-    google-chrome
     i3status
     dmenu
     pavucontrol

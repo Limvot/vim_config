@@ -24,6 +24,6 @@
 
   networking.hostName = "nixos-desk-nathan"; # Define your hostname.
 
-  services.xserver.videoDrivers = [ "nvidia" ];
+  #services.xserver.videoDrivers = [ "nvidia" ];
   
 }

@@ -69,6 +69,10 @@
           publicKey = "y2gAEhg1vwK1+nka2Knu7NyOk8HaaY4w18nD6EMyLSk=";
           allowedIPs = [ "10.100.0.6/32" ];
         }
+        {
+          publicKey = "SoaYh1mb6DYd6TuOEFl4lRCZUBTPQfOnWHIOmtkgxxM=";
+          allowedIPs = [ "10.100.0.7/32" ];
+        }
       ];
     };
   };
@@ -157,6 +161,11 @@
       locations."/k_prime.wasm".extraConfig = ''
            default_type application/wasm;
       '';
+    };
+    virtualHosts."4800H.room409.xyz" = {
+      forceSSL = true;
+      enableACME = true;
+      locations."/".proxyPass = "http://10.100.0.7:80";
     };
     #virtualHosts."chat.room409.xyz" = {
       #forceSSL = true;

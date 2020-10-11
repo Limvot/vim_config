@@ -7,7 +7,7 @@
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+      /etc/nixos/hardware-configuration.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -15,6 +15,16 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  hardware = {
+	  #pulseaudio.enable = true;
+	  #pulseaudio.support32Bit = true;
+
+      #bluetooth.enable = true;
+
+      # Steam stuff
+      opengl.driSupport32Bit = true;
+  };
 
   networking.hostName = "nixos_4800H"; # Define your hostname.
   #networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -26,6 +36,35 @@
   networking.useDHCP = false;
   networking.interfaces.eno1.useDHCP = true;
   networking.interfaces.wlp1s0.useDHCP = true;
+
+  networking.wireguard.interfaces = {
+    wg0 = {
+        ips = [ "10.100.0.7/24" ];
+        privateKeyFile = "/home/nathan/wireguard-keys/private";
+        peers = [
+            {
+                publicKey = "WXx7XXJzerPJBPMTvZ454iQhx5Q5bFvBgF6NsPPX9nk=";
+                #allowedIPs = [ "0.0.0.0/0" ];
+                ## Then sudo ip route add 104.238.179.164 via 10.0.0.1 dev enp30s0
+                allowedIPs = [ "10.100.0.0/24" ];
+                endpoint = "104.238.179.164:51820";
+                persistentKeepalive = 25;
+            }
+        ];
+    };
+  };
+
+  services.nginx = {
+       enable = true;
+       recommendedGzipSettings = true;
+       recommendedOptimisation = true;
+       #recommendedProxySettings = true;
+       recommendedTlsSettings = true;
+       virtualHosts."10.100.0.7" = {
+            root = "/var/www/share_web";
+       };
+   };
+
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -39,7 +78,7 @@
   # };
 
   # Set your time zone.
-  # time.timeZone = "Europe/Amsterdam";
+  time.timeZone = "America/New_York";
 
 
   programs.sway = {
@@ -52,29 +91,35 @@
       mako # notification daemon
       kanshi # autorandr
       dmenu # is this right?
+      i3status
     ];
   };
 
  environment = {
    etc = {
      # Put config files in /etc. Note that you also can put these in ~/.config, but then you can't manage them with Nix
-     #"sway/config".source = /home/nathan/vim_config/sway_config;
+     "sway/config".source = /home/nathan/vim_config/sway_config;
      #"xdg/waybar/config".source = ./dotfiles/waybar/config;
      #"xdg/waybar/style.css".source = ./dotfiles/waybar/style.css;
    };
  };
 
   # Here we but a shell script into path, which lets us start sway.service (after importing the environment of the login
+  nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
-    wget vim tmux git htop w3m
+    wget vim tmux git htop w3m wireguard
 
     gcc gnumake python3 python
     #firefox
     firefox-wayland
-    #i3status dmenu
+    chromium
     pavucontrol sakura
-    pciutils
-    libreoffice xclip file unzip zip ripgrep evince feh killall
+    pciutils light iftop
+    libreoffice vlc xclip file unzip zip ripgrep evince feh killall
+    openshot-qt
+    niv
+
+    steam bluejeans-gui discord
 
     (
       pkgs.writeTextFile {
@@ -155,13 +200,20 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  services.openssh.enable = true;
+
+  services.syncthing = {
+    enable = true;
+    user = "nathan";
+    dataDir = "/home/nathan/syncthing_stuff";
+    configDir = "/home/nathan/syncthing_stuff/.config/syncthing";
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = false;
 
   # Enable CUPS to print documents.
   # services.printing.enable = true;
@@ -187,7 +239,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.nathan = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "video" ]; # Enable ‘sudo’ for the user.
   };
 
   # This value determines the NixOS release from which the default

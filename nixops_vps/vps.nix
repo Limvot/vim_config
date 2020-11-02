@@ -6,7 +6,10 @@
         deployment.targetHost = "room409.xyz";
 
         nix.gc.automatic = true;
-        imports = [ ./hardware-configuration.nix ];
+        imports = [
+            ./hardware-configuration.nix
+            ./dendrite.nix
+        ];
 
         # Use the GRUB 2 boot loader.
         boot.loader.grub.enable = true;
@@ -67,6 +70,14 @@
         services.openssh.enable = true;
         services.openssh.permitRootLogin = "prohibit-password";
 
+
+        services.dendrite = {
+            enable = true;
+            configOptions = {
+                global.server_name = "dendrite.room409.xyz";
+            };
+        };
+
         security.acme.email = "miloignis@gmail.com";
         security.acme.acceptTerms = true;
         services.nginx = {
@@ -75,6 +86,43 @@
             recommendedOptimisation = true;
             #recommendedProxySettings = true;
             recommendedTlsSettings = true;
+
+            virtualHosts."dendrite.room409.xyz" = {
+                addSSL = true;
+                enableACME = true;
+                listen = [
+                    { addr = "0.0.0.0"; port = 443; ssl = true; }
+                    { addr = "[::]"; port = 443; ssl = true; }
+                    { addr = "0.0.0.0"; port = 80; ssl = false; }
+                    { addr = "[::]"; port = 80; ssl = false; }
+                    { addr = "0.0.0.0"; port = 8448; ssl = true; }
+                    { addr = "[::]"; port = 8448; ssl = true; }
+                ];
+                locations."/.well-known/matrix/server".extraConfig = ''
+                    add_header Content-Type application/json;
+                return 200 '{ "m.server": "dendrite.room409.xyz:443" }';
+                '';
+                locations."/.well-known/matrix/client".extraConfig = ''
+                    add_header Content-Type application/json;
+                    add_header Access-Control-Allow-Origin *;
+                    return 200 '{ "m.homeserver": {"base_url": "https://dendrite.room409.xyz"}, "m.identity_server":  { "base_url": "https://vector.im"} }';
+                '';
+                locations."/".proxyPass = "http://localhost:8008";
+                locations."/".extraConfig = ''
+                    proxy_set_header X-Forwarded-For $remote_addr;
+                '';
+            };
+
+            virtualHosts."element.room409.xyz" = {
+                forceSSL = true;
+                enableACME = true;
+                root = pkgs.element-web.override {
+                    conf = {
+                        default_server_name = "dendrite.room409.xyz";
+                        default_server_config = "";
+                    };
+                };
+            };
 
             virtualHosts."kraken-lang.org" = {
               forceSSL = true;

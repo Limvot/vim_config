@@ -109,7 +109,7 @@
   environment.systemPackages = with pkgs; [
     wget vim tmux git htop w3m wireguard
 
-    gcc gnumake python3 python
+    gcc gdb gnumake python3 python
     #firefox
     firefox-wayland
     chromium

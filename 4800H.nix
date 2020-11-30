@@ -117,7 +117,13 @@
     pciutils light iftop
     libreoffice vlc xclip file unzip zip ripgrep evince feh killall
     openshot-qt
+    imagemagick
+    gnome3.nautilus
     niv
+    bookworm
+    calibre
+    epubcheck
+    transmission-gtk
 
     steam bluejeans-gui discord
 

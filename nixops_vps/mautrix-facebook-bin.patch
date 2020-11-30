@@ -1,0 +1,17 @@
+diff --git a/setup.py b/setup.py
+index 136934d..7d2e2c9 100644
+--- a/setup.py
++++ b/setup.py_ohter
+@@ -50,6 +50,12 @@ setuptools.setup(
+     install_requires=install_requires,
+     extras_require=extras_require,
+ 
++    entry_points={
++        'console_scripts': [
++            'mautrix-facebook=mautrix_facebook.__main__:main'
++        ]
++    },
++
+     classifiers=[
+         "Development Status :: 3 - Alpha",
+         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",

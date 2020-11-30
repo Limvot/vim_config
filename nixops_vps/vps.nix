@@ -9,7 +9,15 @@
         imports = [
             ./hardware-configuration.nix
             ./dendrite.nix
+            ./mautrix-facebook-service.nix
         ];
+
+        nixpkgs.config = {
+            packageOverrides = super:
+            { 
+                mautrix-facebook = pkgs.callPackage ./mautrix-facebook.nix { };
+            };
+        };
 
         # Use the GRUB 2 boot loader.
         boot.loader.grub.enable = true;
@@ -27,8 +35,10 @@
         networking.nat.externalInterface = "ens3";
         networking.nat.internalInterfaces = ["wg0"];
         networking.firewall = {
-            allowedTCPPorts = [ 22 80 443 8448 2222 ];
-            allowedUDPPorts = [ 22 80 443 8448 2222 51820 ];
+            #allowedTCPPorts = [ 22 80 443 3478 3479 ];
+            #allowedUDPPorts = [ 22 80 443 5349 5350 51820 ];
+            allowedTCPPorts = [ 22 80 443 ];
+            allowedUDPPorts = [ 22 80 443 51820 ];
             extraCommands = ''
                 iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
             '';
@@ -71,11 +81,84 @@
         services.openssh.permitRootLogin = "prohibit-password";
 
 
-        services.dendrite = {
+        # TODO: Move to PostgreSQL eventually
+        #services.dendrite = {
+        #    enable = true;
+        #    configOptions = {
+        #        global.server_name = "dendrite.room409.xyz";
+        #    };
+        #};
+
+        services.mautrix-telegram = {
             enable = true;
-            configOptions = {
-                global.server_name = "dendrite.room409.xyz";
+            settings = {
+                homeserver = {
+                    address = "https://synapse.room409.xyz";
+                    domain = "synapse.room409.xyz";
+                };
+                bridge.permissions = {
+                    "synapse.room409.xyz" = "full";
+                    "@miloignis:synapse.room409.xyz" = "admin";
+                };
             };
+            environmentFile = /var/lib/mautrix-telegram/secrets;
+        };
+
+        services.mautrix-facebook = {
+            enable = true;
+            settings = {
+                homeserver = {
+                    address = "https://synapse.room409.xyz";
+                    domain = "synapse.room409.xyz";
+                };
+                bridge.permissions = {
+                    "synapse.room409.xyz" = "full";
+                    "@miloignis:synapse.room409.xyz" = "admin";
+                };
+            };
+        };
+
+        services.matrix-synapse = {
+            enable = true;
+
+            server_name = "synapse.room409.xyz";
+            public_baseurl = "https://synapse.room409.xyz/";
+
+            enable_registration = true;
+            #registration_shared_secret = null;
+            verbose = "0";
+            database_type = "psycopg2";
+            url_preview_enabled = true;
+            report_stats = true;
+
+            listeners = [
+                {
+                    port = 8008;
+                    tls = false;
+                    resources = [
+                        {
+                            compress = true;
+                            names = ["client" "federation"];
+                        }
+                    ];
+                }
+            ];
+            app_service_config_files = [
+                "/var/lib/matrix-synapse/telegram-registration.yaml"
+                "/var/lib/matrix-synapse/facebook-registration.yaml"
+            ];
+        };
+
+        services.postgresql = {
+            enable = true;
+            # postgresql user and db name in the service.matrix-synapse.databse_args setting is default
+            initialScript = pkgs.writeText "synapse-init.sql" ''
+                CREATE ROLE "matrix-synapse" WITH LOGIN PASSWORD 'synapse';
+                CREATE DATABASE "matrix-synapse" WITH OWNER "matrix-synapse"
+                    TEMPLATE template0
+                    LC_COLLATE = "C"
+                    LC_CTYPE = "C";
+            '';
         };
 
         security.acme.email = "miloignis@gmail.com";
@@ -87,25 +170,17 @@
             #recommendedProxySettings = true;
             recommendedTlsSettings = true;
 
-            virtualHosts."dendrite.room409.xyz" = {
-                addSSL = true;
+            virtualHosts."synapse.room409.xyz" = {
+                forceSSL = true;
                 enableACME = true;
-                listen = [
-                    { addr = "0.0.0.0"; port = 443; ssl = true; }
-                    { addr = "[::]"; port = 443; ssl = true; }
-                    { addr = "0.0.0.0"; port = 80; ssl = false; }
-                    { addr = "[::]"; port = 80; ssl = false; }
-                    { addr = "0.0.0.0"; port = 8448; ssl = true; }
-                    { addr = "[::]"; port = 8448; ssl = true; }
-                ];
                 locations."/.well-known/matrix/server".extraConfig = ''
                     add_header Content-Type application/json;
-                return 200 '{ "m.server": "dendrite.room409.xyz:443" }';
+                    return 200 '{ "m.server": "synapse.room409.xyz:443" }';
                 '';
                 locations."/.well-known/matrix/client".extraConfig = ''
                     add_header Content-Type application/json;
                     add_header Access-Control-Allow-Origin *;
-                    return 200 '{ "m.homeserver": {"base_url": "https://dendrite.room409.xyz"}, "m.identity_server":  { "base_url": "https://vector.im"} }';
+                    return 200 '{ "m.homeserver": {"base_url": "https://synapse.room409.xyz"}, "m.identity_server":  { "base_url": "https://vector.im"} }';
                 '';
                 locations."/".proxyPass = "http://localhost:8008";
                 locations."/".extraConfig = ''
@@ -113,12 +188,12 @@
                 '';
             };
 
-            virtualHosts."element.room409.xyz" = {
+            virtualHosts."element-synapse.room409.xyz" = {
                 forceSSL = true;
                 enableACME = true;
                 root = pkgs.element-web.override {
                     conf = {
-                        default_server_name = "dendrite.room409.xyz";
+                        default_server_name = "synapse.room409.xyz";
                         default_server_config = "";
                     };
                 };
@@ -154,6 +229,8 @@
                     <body>
                         <header><h1>So Mean and Clean</h1></header>
                         <i>It's like a hacker wrote it</i>
+                        <br> <br>
+                        <b>Keyboard Cowpeople Team:</b> <a href="https://github.com/Limvot/Serif">Serif, a cross platform Matrix client</a>
                         <br> <br>
                         <b>MiloIgnis:</b> <a href="https://kraken-lang.org/">Kraken Programming Language</a>
                     </body>

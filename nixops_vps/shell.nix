@@ -12,7 +12,8 @@ in
 pkgs.mkShell {
     buildInputs = with pkgs; [
         niv.niv
-        nix nixops
+        nix
+        nixopsUnstable
         vim
     ];
     NIX_PATH="nixpkgs=${sources.nixpkgs}";

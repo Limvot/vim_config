@@ -8,7 +8,7 @@
         nix.gc.automatic = true;
         imports = [
             ./hardware-configuration.nix
-            ./dendrite.nix
+            #./dendrite.nix
             ./mautrix-facebook-service.nix
         ];
 
@@ -130,6 +130,7 @@
             database_type = "psycopg2";
             url_preview_enabled = true;
             report_stats = true;
+            max_upload_size = "100M";
 
             listeners = [
                 {
@@ -184,6 +185,7 @@
                 '';
                 locations."/".proxyPass = "http://localhost:8008";
                 locations."/".extraConfig = ''
+                    client_max_body_size 100M;
                     proxy_set_header X-Forwarded-For $remote_addr;
                 '';
             };
@@ -207,6 +209,14 @@
                    default_type application/wasm;
               '';
             };
+            #virtualHosts."www.kraken-lang.org" = {
+            #  forceSSL = true;
+            #  enableACME = true;
+            #  root = "/var/www/kraken-lang.org";
+            #  locations."/k_prime.wasm".extraConfig = ''
+            #       default_type application/wasm;
+            #  '';
+            #};
             virtualHosts."room409.xyz" = {
               forceSSL = true;
               enableACME = true;

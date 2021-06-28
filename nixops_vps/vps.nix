@@ -8,16 +8,20 @@
         nix.gc.automatic = true;
         imports = [
             ./hardware-configuration.nix
-            #./dendrite.nix
-            ./mautrix-facebook-service.nix
         ];
 
-        nixpkgs.config = {
-            packageOverrides = super:
-            { 
-                mautrix-facebook = pkgs.callPackage ./mautrix-facebook.nix { };
-            };
-        };
+        nixpkgs.overlays = [ ( self: super: {
+            mautrix-telegram = super.mautrix-telegram.overrideAttrs (old: {
+                src = pkgs.fetchFromGitHub {
+                    owner = "tulir";
+                    repo = old.pname;
+                    #rev = "v${version}";
+                    # Literal next commit to fix double-puppeting 2 typing 2 furious
+                    rev = "eca1032d1660099216e71a7e0b24d35bb4833d74";
+                    sha256 = "1vpdgi1szhlccni1d87bbcsi2p08ifs1s2iinimkc7d8ldqv1p52";
+                };
+            });
+        }) ];
 
         # Use the GRUB 2 boot loader.
         boot.loader.grub.enable = true;
@@ -80,15 +84,6 @@
         services.openssh.enable = true;
         services.openssh.permitRootLogin = "prohibit-password";
 
-
-        # TODO: Move to PostgreSQL eventually
-        #services.dendrite = {
-        #    enable = true;
-        #    configOptions = {
-        #        global.server_name = "dendrite.room409.xyz";
-        #    };
-        #};
-
         services.mautrix-telegram = {
             enable = true;
             settings = {
@@ -102,20 +97,6 @@
                 };
             };
             environmentFile = /var/lib/mautrix-telegram/secrets;
-        };
-
-        services.mautrix-facebook = {
-            enable = true;
-            settings = {
-                homeserver = {
-                    address = "https://synapse.room409.xyz";
-                    domain = "synapse.room409.xyz";
-                };
-                bridge.permissions = {
-                    "synapse.room409.xyz" = "full";
-                    "@miloignis:synapse.room409.xyz" = "admin";
-                };
-            };
         };
 
         services.matrix-synapse = {

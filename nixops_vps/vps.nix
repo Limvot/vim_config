@@ -20,6 +20,9 @@
                     rev = "eca1032d1660099216e71a7e0b24d35bb4833d74";
                     sha256 = "1vpdgi1szhlccni1d87bbcsi2p08ifs1s2iinimkc7d8ldqv1p52";
                 };
+                propagatedBuildInputs = old.propagatedBuildInputs ++ (with pkgs.python3.pkgs; [
+                    asyncpg python-olm pycryptodome unpaddedbase64
+                ]);
             });
         }) ];
 
@@ -94,6 +97,10 @@
                 bridge.permissions = {
                     "synapse.room409.xyz" = "full";
                     "@miloignis:synapse.room409.xyz" = "admin";
+                };
+                bridge.encryption = {
+                    allow = true;
+                    require_verification = false;
                 };
             };
             environmentFile = /var/lib/mautrix-telegram/secrets;
